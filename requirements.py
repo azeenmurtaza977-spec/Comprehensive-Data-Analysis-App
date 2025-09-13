@@ -1,9 +1,8 @@
-streamlit==1.28.1
-pandas==2.0.3
-numpy==1.24.3
-matplotlib==3.7.2
-seaborn==0.12.2
-scipy==1.11.1
-scikit-learn==1.3.0
-plotly==5.15.0
-kaleido==0.2.1
+streamlit>=1.25.0
+pandas>=1.5.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+scipy>=1.7.0
+scikit-learn>=1.0.0
+plotly>=5.0.0
