@@ -40,18 +40,28 @@ if uploaded_file:
             st.write("**Maximum Values**")
             st.dataframe(df[numeric_cols].max().to_frame("Max"))
 
-        # Bar chart of numeric columns (instead of line)
+        # Bar chart of numeric columns
         st.markdown("### 📊 Distribution of Numeric Columns")
         st.bar_chart(df[numeric_cols])
 
-    # Top performer
+    # Top performer (numeric)
     if len(numeric_cols) > 0:
-        st.markdown("### 🏆 Top Performer")
-        top_col = st.selectbox("Select a column to find top performer:", numeric_cols)
+        st.markdown("### 🏆 Top Performer (Numeric)")
+        top_col = st.selectbox("Select a numeric column to find top performer:", numeric_cols)
         top_row = df.loc[df[top_col].idxmax()]
         st.success(f"Highest {top_col}: {top_row[top_col]}")
         st.write("**Details of top performer:**")
         st.dataframe(top_row.to_frame().T)
+
+    # Highest occurrence (categorical)
+    if len(categorical_cols) > 0:
+        st.markdown("### 🥇 Most Frequent (Categorical)")
+        cat_col = st.selectbox("Select a categorical column to find most frequent:", categorical_cols)
+        most_common_value = df[cat_col].value_counts().idxmax()
+        most_common_count = df[cat_col].value_counts().max()
+        st.success(f"Most frequent {cat_col}: {most_common_value} (appears {most_common_count} times)")
+        st.write("**Top value counts:**")
+        st.dataframe(df[cat_col].value_counts().head(10).to_frame("Count"))
 
     # Column-wise analysis
     st.markdown("### 🔍 Column-wise Analysis")
@@ -108,5 +118,5 @@ if uploaded_file:
     if len(numeric_cols) > 0:
         st.write("- Numeric insights available: min, max, distributions, histograms.")
     if len(categorical_cols) > 0:
-        st.write("- Categorical insights available: distributions, value counts.")
+        st.write("- Categorical insights available: most frequent values, distributions.")
 
