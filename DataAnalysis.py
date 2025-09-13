@@ -40,9 +40,9 @@ if uploaded_file:
             st.write("**Maximum Values**")
             st.dataframe(df[numeric_cols].max().to_frame("Max"))
 
-        # Line chart of numeric columns
-        st.markdown("### 📉 Trend of Numeric Columns")
-        st.line_chart(df[numeric_cols])
+        # Bar chart of numeric columns (instead of line)
+        st.markdown("### 📊 Distribution of Numeric Columns")
+        st.bar_chart(df[numeric_cols])
 
     # Top performer
     if len(numeric_cols) > 0:
@@ -61,11 +61,8 @@ if uploaded_file:
         st.write("**Summary:**")
         st.dataframe(df[col].describe().to_frame())
 
-        st.markdown("**Histogram (approx via bar chart)**")
+        st.markdown("**Histogram (via bar chart)**")
         st.bar_chart(df[col].value_counts().sort_index())
-
-        st.markdown("**Line Chart**")
-        st.line_chart(df[col])
 
         st.markdown("**Area Chart**")
         st.area_chart(df[col])
@@ -87,7 +84,7 @@ if uploaded_file:
             grouped = df.groupby(col1)[col2].mean().sort_values()
             st.bar_chart(grouped)
 
-            st.markdown(f"**Distribution of {col2} (Histogram)**")
+            st.markdown(f"**Histogram of {col2}**")
             st.bar_chart(df[col2].value_counts().sort_index())
 
         elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
@@ -100,11 +97,16 @@ if uploaded_file:
             st.markdown(f"**Histogram of {col2}**")
             st.bar_chart(df[col2].value_counts().sort_index())
 
+        elif not pd.api.types.is_numeric_dtype(df[col1]) and not pd.api.types.is_numeric_dtype(df[col2]):
+            st.markdown("**Cross-tabulation (Bar Chart)**")
+            cross_tab = df.groupby([col1, col2]).size().unstack(fill_value=0)
+            st.bar_chart(cross_tab)
+
     # Overall insights
     st.markdown("### 🧾 Overall Insights")
     st.write(f"- Dataset has **{df.shape[0]} rows** and **{df.shape[1]} columns**.")
     if len(numeric_cols) > 0:
-        st.write("- Numeric insights available: min, max, trends, histograms.")
+        st.write("- Numeric insights available: min, max, distributions, histograms.")
     if len(categorical_cols) > 0:
         st.write("- Categorical insights available: distributions, value counts.")
 
