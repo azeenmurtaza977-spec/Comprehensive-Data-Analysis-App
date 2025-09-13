@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Title
-st.title("📊 Simple Data Analysis App")
+st.title("📊  Data Analysis App")
 
 # File uploader
 uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
