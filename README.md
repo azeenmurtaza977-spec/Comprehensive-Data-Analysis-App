@@ -1,1 +1,1 @@
-# Comprehensive-Data-Analysis-App
+# Exploratory-Data-Analysis-App
