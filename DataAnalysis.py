@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # Set page config
-st.set_page_config(page_title="📊 Exploratory Data Analysis", layout="wide")
+st.set_page_config(page_title="📊 Comprehensive Data Analysis", layout="wide")
 
 # Title
 st.markdown("<h1 style='text-align: center; color: #2E86C1;'>📊 Comprehensive Data Analysis App</h1>", unsafe_allow_html=True)
@@ -41,10 +41,15 @@ if uploaded_file:
             st.write("**Maximum Values**")
             st.dataframe(df[numeric_cols].max().to_frame("Max"))
 
-        # Bar chart of numeric columns
-        st.markdown("### 📊 Distribution of Numeric Columns (Bar Chart)")
+        # Histogram of numeric columns
+        st.markdown("### 📊 Distribution of Numeric Columns (Histogram)")
         for col in numeric_cols:
-            fig = px.histogram(df, x=col, color_discrete_sequence=px.colors.qualitative.Set2)
+            fig = px.histogram(
+                df, x=col, nbins=30,  # 30 bins for clarity
+                title=f"Distribution of {col}",
+                color_discrete_sequence=px.colors.qualitative.Safe
+            )
+            fig.update_layout(bargap=0.1, plot_bgcolor="white")
             st.plotly_chart(fig, use_container_width=True)
 
     # Top performer (numeric)
@@ -76,14 +81,26 @@ if uploaded_file:
         st.dataframe(df[col].describe().to_frame())
 
         st.markdown("**Histogram (Bar Chart)**")
-        fig = px.histogram(df, x=col, color_discrete_sequence=px.colors.qualitative.Bold)
+        fig = px.histogram(
+            df, x=col, nbins=30,
+            title=f"Histogram of {col}",
+            color_discrete_sequence=px.colors.qualitative.Bold
+        )
+        fig.update_layout(bargap=0.1, plot_bgcolor="white")
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.write("**Value counts:**")
         st.dataframe(df[col].value_counts().head(10).to_frame())
 
         st.markdown("**Top Categories (Bar Chart)**")
-        fig = px.bar(df[col].value_counts().head(10), x=df[col].value_counts().head(10).index, y=df[col].value_counts().head(10).values, color=df[col].value_counts().head(10).index, color_discrete_sequence=px.colors.qualitative.Set3)
+        fig = px.bar(
+            df[col].value_counts().head(10),
+            x=df[col].value_counts().head(10).index,
+            y=df[col].value_counts().head(10).values,
+            color=df[col].value_counts().head(10).index,
+            title=f"Top Categories in {col}",
+            color_discrete_sequence=px.colors.qualitative.Set3
+        )
         st.plotly_chart(fig, use_container_width=True)
 
     # Compare two columns
@@ -95,20 +112,25 @@ if uploaded_file:
         if pd.api.types.is_numeric_dtype(df[col2]) and not pd.api.types.is_numeric_dtype(df[col1]):
             st.markdown(f"**Average {col2} by {col1} (Bar Chart)**")
             grouped = df.groupby(col1)[col2].mean().sort_values()
-            fig = px.bar(grouped, x=grouped.index, y=grouped.values, color=grouped.index, color_discrete_sequence=px.colors.qualitative.Vivid)
+            fig = px.bar(
+                grouped, x=grouped.index, y=grouped.values,
+                color=grouped.index,
+                title=f"Average {col2} by {col1}",
+                color_discrete_sequence=px.colors.qualitative.Vivid
+            )
             st.plotly_chart(fig, use_container_width=True)
 
         elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
-            st.markdown(f"**Comparison of {col1} and {col2} (Bar Chart)**")
-            grouped = df[[col1, col2]].corr().iloc[0, 1]
-            st.info(f"Correlation between {col1} and {col2}: {round(grouped,2)}")
+            st.markdown(f"**Comparison of {col1} and {col2} (Box Plot)**")
+            corr_value = df[[col1, col2]].corr().iloc[0, 1]
+            st.info(f"Correlation between {col1} and {col2}: {round(corr_value,2)}")
             fig = px.box(df, x=col1, y=col2, color_discrete_sequence=px.colors.qualitative.Set1)
             st.plotly_chart(fig, use_container_width=True)
 
         elif not pd.api.types.is_numeric_dtype(df[col1]) and not pd.api.types.is_numeric_dtype(df[col2]):
             st.markdown("**Cross-tabulation (Bar Chart)**")
             cross_tab = df.groupby([col1, col2]).size().unstack(fill_value=0)
-            fig = px.bar(cross_tab, barmode="group", color_discrete_sequence=px.colors.qualitative.Safe)
+            fig = px.bar(cross_tab, barmode="group", title=f"Cross-tabulation of {col1} and {col2}", color_discrete_sequence=px.colors.qualitative.Safe)
             st.plotly_chart(fig, use_container_width=True)
 
     # Extra EDA Features
@@ -130,3 +152,4 @@ if uploaded_file:
         st.write("- Numeric insights include min, max, distributions, correlations.")
     if len(categorical_cols) > 0:
         st.write("- Categorical insights include frequency counts and pie charts.")
+
