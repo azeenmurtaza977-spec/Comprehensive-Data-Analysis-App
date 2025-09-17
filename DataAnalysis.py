@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # Set page config
-st.set_page_config(page_title="📊 Comprehensive Data Analysis", layout="wide")
+st.set_page_config(page_title="📊 Exploratory Data Analysis", layout="wide")
 
 # Title
 st.markdown("<h1 style='text-align: center; color: #2E86C1;'>📊 Comprehensive Data Analysis App</h1>", unsafe_allow_html=True)
@@ -41,8 +42,10 @@ if uploaded_file:
             st.dataframe(df[numeric_cols].max().to_frame("Max"))
 
         # Bar chart of numeric columns
-        st.markdown("### 📊 Distribution of Numeric Columns")
-        st.bar_chart(df[numeric_cols])
+        st.markdown("### 📊 Distribution of Numeric Columns (Bar Chart)")
+        for col in numeric_cols:
+            fig = px.histogram(df, x=col, color_discrete_sequence=px.colors.qualitative.Set2)
+            st.plotly_chart(fig, use_container_width=True)
 
     # Top performer (numeric)
     if len(numeric_cols) > 0:
@@ -60,8 +63,9 @@ if uploaded_file:
         most_common_value = df[cat_col].value_counts().idxmax()
         most_common_count = df[cat_col].value_counts().max()
         st.success(f"Most frequent {cat_col}: {most_common_value} (appears {most_common_count} times)")
-        st.write("**Top value counts:**")
-        st.dataframe(df[cat_col].value_counts().head(10).to_frame("Count"))
+        st.write("**Top value counts (Pie Chart):**")
+        fig = px.pie(df, names=cat_col, title=f"Distribution of {cat_col}", color_discrete_sequence=px.colors.qualitative.Pastel)
+        st.plotly_chart(fig, use_container_width=True)
 
     # Column-wise analysis
     st.markdown("### 🔍 Column-wise Analysis")
@@ -71,17 +75,16 @@ if uploaded_file:
         st.write("**Summary:**")
         st.dataframe(df[col].describe().to_frame())
 
-        st.markdown("**Histogram (via bar chart)**")
-        st.bar_chart(df[col].value_counts().sort_index())
-
-        st.markdown("**Area Chart**")
-        st.area_chart(df[col])
+        st.markdown("**Histogram (Bar Chart)**")
+        fig = px.histogram(df, x=col, color_discrete_sequence=px.colors.qualitative.Bold)
+        st.plotly_chart(fig, use_container_width=True)
     else:
         st.write("**Value counts:**")
         st.dataframe(df[col].value_counts().head(10).to_frame())
 
         st.markdown("**Top Categories (Bar Chart)**")
-        st.bar_chart(df[col].value_counts().head(10))
+        fig = px.bar(df[col].value_counts().head(10), x=df[col].value_counts().head(10).index, y=df[col].value_counts().head(10).values, color=df[col].value_counts().head(10).index, color_discrete_sequence=px.colors.qualitative.Set3)
+        st.plotly_chart(fig, use_container_width=True)
 
     # Compare two columns
     st.markdown("### 📊 Compare Two Columns")
@@ -92,31 +95,38 @@ if uploaded_file:
         if pd.api.types.is_numeric_dtype(df[col2]) and not pd.api.types.is_numeric_dtype(df[col1]):
             st.markdown(f"**Average {col2} by {col1} (Bar Chart)**")
             grouped = df.groupby(col1)[col2].mean().sort_values()
-            st.bar_chart(grouped)
-
-            st.markdown(f"**Histogram of {col2}**")
-            st.bar_chart(df[col2].value_counts().sort_index())
+            fig = px.bar(grouped, x=grouped.index, y=grouped.values, color=grouped.index, color_discrete_sequence=px.colors.qualitative.Vivid)
+            st.plotly_chart(fig, use_container_width=True)
 
         elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
-            st.markdown(f"**Scatter Plot: {col1} vs {col2}**")
-            st.scatter_chart(df[[col1, col2]])
-
-            st.markdown(f"**Histogram of {col1}**")
-            st.bar_chart(df[col1].value_counts().sort_index())
-
-            st.markdown(f"**Histogram of {col2}**")
-            st.bar_chart(df[col2].value_counts().sort_index())
+            st.markdown(f"**Comparison of {col1} and {col2} (Bar Chart)**")
+            grouped = df[[col1, col2]].corr().iloc[0, 1]
+            st.info(f"Correlation between {col1} and {col2}: {round(grouped,2)}")
+            fig = px.box(df, x=col1, y=col2, color_discrete_sequence=px.colors.qualitative.Set1)
+            st.plotly_chart(fig, use_container_width=True)
 
         elif not pd.api.types.is_numeric_dtype(df[col1]) and not pd.api.types.is_numeric_dtype(df[col2]):
             st.markdown("**Cross-tabulation (Bar Chart)**")
             cross_tab = df.groupby([col1, col2]).size().unstack(fill_value=0)
-            st.bar_chart(cross_tab)
+            fig = px.bar(cross_tab, barmode="group", color_discrete_sequence=px.colors.qualitative.Safe)
+            st.plotly_chart(fig, use_container_width=True)
+
+    # Extra EDA Features
+    st.markdown("### 🔬 Extra EDA Features")
+    if len(numeric_cols) > 1:
+        st.write("**Correlation Heatmap**")
+        corr = df[numeric_cols].corr()
+        fig = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r", title="Correlation Heatmap")
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.write("**Missing Values:**")
+    missing = df.isnull().sum()
+    st.dataframe(missing[missing > 0].to_frame("Missing Values"))
 
     # Overall insights
     st.markdown("### 🧾 Overall Insights")
     st.write(f"- Dataset has **{df.shape[0]} rows** and **{df.shape[1]} columns**.")
     if len(numeric_cols) > 0:
-        st.write("- Numeric insights available: min, max, distributions, histograms.")
+        st.write("- Numeric insights include min, max, distributions, correlations.")
     if len(categorical_cols) > 0:
-        st.write("- Categorical insights available: most frequent values, distributions.")
-
+        st.write("- Categorical insights include frequency counts and pie charts.")
