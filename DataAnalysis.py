@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # Set page config
-st.set_page_config(page_title="📊 Comprehensive Data Analysis", layout="wide")
+st.set_page_config(page_title="📊 Exploratory Data Analysis", layout="wide")
 
 # Title
 st.markdown("<h1 style='text-align: center; color: #2E86C1;'>📊 Comprehensive Data Analysis App</h1>", unsafe_allow_html=True)
