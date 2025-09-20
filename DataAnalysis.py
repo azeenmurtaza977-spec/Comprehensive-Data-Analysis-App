@@ -44,11 +44,9 @@ if uploaded_file:
         # Histogram of numeric columns
         st.markdown("### 📊 Distribution of Numeric Columns (Histogram)")
         for col in numeric_cols:
-            fig = px.histogram(
-                df, x=col, nbins=30,  # 30 bins for clarity
-                title=f"Distribution of {col}",
-                color_discrete_sequence=px.colors.qualitative.Safe
-            )
+            fig = px.histogram(df, x=col, nbins=30,
+                               title=f"Distribution of {col}",
+                               color_discrete_sequence=px.colors.qualitative.Safe)
             fig.update_layout(bargap=0.1, plot_bgcolor="white")
             st.plotly_chart(fig, use_container_width=True)
 
@@ -69,7 +67,8 @@ if uploaded_file:
         most_common_count = df[cat_col].value_counts().max()
         st.success(f"Most frequent {cat_col}: {most_common_value} (appears {most_common_count} times)")
         st.write("**Top value counts (Pie Chart):**")
-        fig = px.pie(df, names=cat_col, title=f"Distribution of {cat_col}", color_discrete_sequence=px.colors.qualitative.Pastel)
+        fig = px.pie(df, names=cat_col, title=f"Distribution of {cat_col}",
+                     color_discrete_sequence=px.colors.qualitative.Pastel)
         st.plotly_chart(fig, use_container_width=True)
 
     # Column-wise analysis
@@ -81,11 +80,9 @@ if uploaded_file:
         st.dataframe(df[col].describe().to_frame())
 
         st.markdown("**Histogram (Bar Chart)**")
-        fig = px.histogram(
-            df, x=col, nbins=30,
-            title=f"Histogram of {col}",
-            color_discrete_sequence=px.colors.qualitative.Bold
-        )
+        fig = px.histogram(df, x=col, nbins=30,
+                           title=f"Histogram of {col}",
+                           color_discrete_sequence=px.colors.qualitative.Bold)
         fig.update_layout(bargap=0.1, plot_bgcolor="white")
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -93,14 +90,12 @@ if uploaded_file:
         st.dataframe(df[col].value_counts().head(10).to_frame())
 
         st.markdown("**Top Categories (Bar Chart)**")
-        fig = px.bar(
-            df[col].value_counts().head(10),
-            x=df[col].value_counts().head(10).index,
-            y=df[col].value_counts().head(10).values,
-            color=df[col].value_counts().head(10).index,
-            title=f"Top Categories in {col}",
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
+        fig = px.bar(df[col].value_counts().head(10),
+                     x=df[col].value_counts().head(10).index,
+                     y=df[col].value_counts().head(10).values,
+                     color=df[col].value_counts().head(10).index,
+                     title=f"Top Categories in {col}",
+                     color_discrete_sequence=px.colors.qualitative.Set3)
         st.plotly_chart(fig, use_container_width=True)
 
     # Compare two columns
@@ -112,12 +107,9 @@ if uploaded_file:
         if pd.api.types.is_numeric_dtype(df[col2]) and not pd.api.types.is_numeric_dtype(df[col1]):
             st.markdown(f"**Average {col2} by {col1} (Bar Chart)**")
             grouped = df.groupby(col1)[col2].mean().sort_values()
-            fig = px.bar(
-                grouped, x=grouped.index, y=grouped.values,
-                color=grouped.index,
-                title=f"Average {col2} by {col1}",
-                color_discrete_sequence=px.colors.qualitative.Vivid
-            )
+            fig = px.bar(grouped, x=grouped.index, y=grouped.values,
+                         color=grouped.index, title=f"Average {col2} by {col1}",
+                         color_discrete_sequence=px.colors.qualitative.Vivid)
             st.plotly_chart(fig, use_container_width=True)
 
         elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
@@ -130,7 +122,9 @@ if uploaded_file:
         elif not pd.api.types.is_numeric_dtype(df[col1]) and not pd.api.types.is_numeric_dtype(df[col2]):
             st.markdown("**Cross-tabulation (Bar Chart)**")
             cross_tab = df.groupby([col1, col2]).size().unstack(fill_value=0)
-            fig = px.bar(cross_tab, barmode="group", title=f"Cross-tabulation of {col1} and {col2}", color_discrete_sequence=px.colors.qualitative.Safe)
+            fig = px.bar(cross_tab, barmode="group",
+                         title=f"Cross-tabulation of {col1} and {col2}",
+                         color_discrete_sequence=px.colors.qualitative.Safe)
             st.plotly_chart(fig, use_container_width=True)
 
     # Extra EDA Features
@@ -138,18 +132,40 @@ if uploaded_file:
     if len(numeric_cols) > 1:
         st.write("**Correlation Heatmap**")
         corr = df[numeric_cols].corr()
-        fig = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r", title="Correlation Heatmap")
+        fig = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r",
+                        title="Correlation Heatmap")
         st.plotly_chart(fig, use_container_width=True)
 
     st.write("**Missing Values:**")
     missing = df.isnull().sum()
     st.dataframe(missing[missing > 0].to_frame("Missing Values"))
 
-    # Overall insights
-    st.markdown("### 🧾 Overall Insights")
-    st.write(f"- Dataset has **{df.shape[0]} rows** and **{df.shape[1]} columns**.")
-    if len(numeric_cols) > 0:
-        st.write("- Numeric insights include min, max, distributions, correlations.")
-    if len(categorical_cols) > 0:
-        st.write("- Categorical insights include frequency counts and pie charts.")
+    # ✅ NEW FEATURES ADDED (NO EXTRA LIBS)
 
+    # Unique value counts
+    st.markdown("### 📌 Unique Value Counts per Column")
+    unique_counts = df.nunique().to_frame("Unique Values")
+    st.dataframe(unique_counts)
+
+    # Outlier detection
+    if len(numeric_cols) > 0:
+        st.markdown("### 🚨 Outlier Detection")
+        num_col = st.selectbox("Select a numeric column for outlier analysis", numeric_cols)
+        fig = px.box(df, y=num_col, points="all",
+                     title=f"Outlier Detection in {num_col}")
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Download dataset
+    st.markdown("### 📥 Download Cleaned Dataset")
+    csv = df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", csv, "cleaned_dataset.csv", "text/csv")
+
+    # Export insights summary
+    st.markdown("### 📝 Export Insights")
+    insights = f"""
+    Dataset has {df.shape[0]} rows and {df.shape[1]} columns.
+    Numeric Columns: {list(numeric_cols)}
+    Categorical Columns: {list(categorical_cols)}
+    Missing Values: {missing.sum()}
+    """
+    st.download_button("Download Insights Summary", insights, "insights.txt")
