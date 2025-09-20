@@ -6,7 +6,7 @@ import plotly.express as px
 st.set_page_config(page_title="📊 Exploratory Data Analysis", layout="wide")
 
 # Title
-st.markdown("<h1 style='text-align: center; color: #2E86C1;'>📊 Comprehensive Data Analysis App</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #2E86C1;'>📊 Exploratory Data Analysis App</h1>", unsafe_allow_html=True)
 
 # File uploader
 uploaded_file = st.file_uploader("📂 Upload your CSV file", type=["csv"])
@@ -113,10 +113,11 @@ if uploaded_file:
             st.plotly_chart(fig, use_container_width=True)
 
         elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
-            st.markdown(f"**Comparison of {col1} and {col2} (Box Plot)**")
-            corr_value = df[[col1, col2]].corr().iloc[0, 1]
-            st.info(f"Correlation between {col1} and {col2}: {round(corr_value,2)}")
-            fig = px.box(df, x=col1, y=col2, color_discrete_sequence=px.colors.qualitative.Set1)
+            st.markdown(f"**Comparison of {col1} and {col2} (Bar Chart)**")
+            avg_df = df.groupby(col1)[col2].mean().reset_index()
+            fig = px.bar(avg_df, x=col1, y=col2,
+                         title=f"Average {col2} by {col1}",
+                         color=col1, color_discrete_sequence=px.colors.qualitative.Bold)
             st.plotly_chart(fig, use_container_width=True)
 
         elif not pd.api.types.is_numeric_dtype(df[col1]) and not pd.api.types.is_numeric_dtype(df[col2]):
@@ -140,27 +141,17 @@ if uploaded_file:
     missing = df.isnull().sum()
     st.dataframe(missing[missing > 0].to_frame("Missing Values"))
 
-    # ✅ NEW FEATURES ADDED (NO EXTRA LIBS)
-
-    # Unique value counts
+    # ✅ NEW FEATURE: Unique value counts
     st.markdown("### 📌 Unique Value Counts per Column")
     unique_counts = df.nunique().to_frame("Unique Values")
     st.dataframe(unique_counts)
 
-    # Outlier detection
-    if len(numeric_cols) > 0:
-        st.markdown("### 🚨 Outlier Detection")
-        num_col = st.selectbox("Select a numeric column for outlier analysis", numeric_cols)
-        fig = px.box(df, y=num_col, points="all",
-                     title=f"Outlier Detection in {num_col}")
-        st.plotly_chart(fig, use_container_width=True)
-
-    # Download dataset
+    # 📥 Download dataset
     st.markdown("### 📥 Download Cleaned Dataset")
     csv = df.to_csv(index=False).encode("utf-8")
     st.download_button("Download CSV", csv, "cleaned_dataset.csv", "text/csv")
 
-    # Export insights summary
+    # 📝 Export insights summary
     st.markdown("### 📝 Export Insights")
     insights = f"""
     Dataset has {df.shape[0]} rows and {df.shape[1]} columns.
@@ -169,3 +160,4 @@ if uploaded_file:
     Missing Values: {missing.sum()}
     """
     st.download_button("Download Insights Summary", insights, "insights.txt")
+
