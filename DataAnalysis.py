@@ -155,5 +155,34 @@ if uploaded_file:
         st.write("- Numeric insights include min, max, distributions, correlations.")
     if len(categorical_cols) > 0:
         st.write("- Categorical insights include frequency counts and pie charts.")
+            # Download options
+    st.markdown("### 💾 Download Options")
+
+    # Download cleaned dataset
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="⬇️ Download Dataset as CSV",
+        data=csv,
+        file_name="cleaned_dataset.csv",
+        mime="text/csv"
+    )
+
+    # Download insights
+    insights = []
+    insights.append(f"Dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
+    if len(numeric_cols) > 0:
+        insights.append("Includes numeric insights such as min, max, distributions, correlations.")
+    if len(categorical_cols) > 0:
+        insights.append("Includes categorical insights such as frequency counts and pie charts.")
+
+    insights_text = "\n".join(insights)
+
+    st.download_button(
+        label="📝 Download Insights as TXT",
+        data=insights_text,
+        file_name="dataset_insights.txt",
+        mime="text/plain"
+    )
+
 
 
